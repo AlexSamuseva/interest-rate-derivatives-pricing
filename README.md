@@ -13,13 +13,15 @@
 
 <!-- SPHINX-START -->
 
-The go-to package for pricing interest rate derivatives with real-time treasury yield curve data visualization.
+The go-to package for pricing interest rate derivatives with real-time treasury
+yield curve data visualization.
 
 ## Dashboard
 
 ### Quick Start
 
-The package includes an interactive Streamlit dashboard for visualizing U.S. Treasury yield curves from FRED (Federal Reserve Economic Data).
+The package includes an interactive Streamlit dashboard for visualizing U.S.
+Treasury yield curves from FRED (Federal Reserve Economic Data).
 
 #### Running the Dashboard
 
@@ -41,7 +43,8 @@ The dashboard will open in your browser at `http://localhost:8501`.
      FRED_API_KEY=your_api_key_here
      ```
 
-**Note:** Without an API key, the dashboard displays placeholder data. With an API key, you get real-time treasury yields.
+**Note:** Without an API key, the dashboard displays placeholder data. With an
+API key, you get real-time treasury yields.
 
 ### Dashboard Features
 
@@ -65,6 +68,7 @@ We use `uv` for fast and reliable dependency management.
 #### Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/AlexSamuseva/interest-rate-derivatives-pricing.git
    cd interest-rate-derivatives
@@ -75,7 +79,8 @@ We use `uv` for fast and reliable dependency management.
    uv sync
    ```
 
-This command will create a virtual environment and install all dependencies (including dev, test, and docs dependencies).
+This command will create a virtual environment and install all dependencies
+(including dev, test, and docs dependencies).
 
 ### Running the Dashboard in Development
 
@@ -85,7 +90,8 @@ After setting up the environment with `uv sync`, run:
 streamlit run src/interest_rate_derivatives/app.py
 ```
 
-The dashboard will be available at `http://localhost:8501` with hot-reload enabled for development.
+The dashboard will be available at `http://localhost:8501` with hot-reload
+enabled for development.
 
 ### Running Tests
 

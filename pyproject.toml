@@ -54,6 +54,7 @@ dev = [
   { include-group = "test" },
   "ruff",
   "mypy",
+  "prek>=0.3.11",
 ]
 docs = [
   "sphinx>=7.0",
@@ -95,7 +96,6 @@ disallow_incomplete_defs = false
 ignore_missing_imports = true
 warn_return_any = false
 disallow_any_unimported = false
-no_error_summary = false
 
 [[tool.mypy.overrides]]
 module = "interest_rate_derivatives.*"
