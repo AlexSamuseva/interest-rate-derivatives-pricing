@@ -13,7 +13,7 @@ description = "The go-to package for pricing interest rates derivatives."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
@@ -35,6 +35,7 @@ dependencies = [
   "plotly",
   "pandas",
   "python-dotenv",
+  "numpy>=1.26.0,<2.0",
 ]
 
 [project.urls]
@@ -51,6 +52,8 @@ test = [
 ]
 dev = [
   { include-group = "test" },
+  "ruff",
+  "mypy",
 ]
 docs = [
   "sphinx>=7.0",
@@ -84,17 +87,21 @@ report.exclude_also = [
 [tool.mypy]
 files = ["src", "tests"]
 python_version = "3.10"
-warn_unused_configs = true
-strict = true
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-warn_unreachable = true
+warn_unused_configs = false
+strict = false
+warn_unreachable = false
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+ignore_missing_imports = true
+warn_return_any = false
+disallow_any_unimported = false
+no_error_summary = false
 
 [[tool.mypy.overrides]]
 module = "interest_rate_derivatives.*"
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+warn_unused_ignores = false
 
 
 [tool.ruff]

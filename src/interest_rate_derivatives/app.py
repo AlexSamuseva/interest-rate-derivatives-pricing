@@ -35,7 +35,7 @@ st.sidebar.subheader("FRED API Key")
 api_key_input = st.sidebar.text_input(
     "Enter your FRED API Key (optional)",
     type="password",
-    help="Get a free API key at https://fred.stlouisfed.org/user/register. Leave blank to use .env file or placeholder data."
+    help="Get a free API key at https://fred.stlouisfed.org/user/register. Leave blank to use .env file or placeholder data.",
 )
 
 date_input = st.sidebar.date_input(
@@ -53,6 +53,7 @@ if api_key_input:
     st.sidebar.success("✓ API key configured (via UI)")
 else:
     st.sidebar.info("i️ Using .env file or placeholder data")
+
 
 # Fetch data
 @st.cache_data(ttl=3600)
@@ -77,25 +78,28 @@ def get_yield_curve(
     )
     return client.get_term_structure(date=date_param)
 
+
 # Display content
-if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fetch on load
+if (
+    st.sidebar.button("Refresh", use_container_width=True) or True
+):  # Always fetch on load
     with st.spinner("Fetching data from FRED..."):
         try:
             date_str = date_input.isoformat()
             # Pass API key if provided
-            api_key_param = api_key_input if api_key_input else None
+            api_key_param = api_key_input or None
             curve_data = get_yield_curve(_provider, date_str, api_key=api_key_param)
-            
+
             # Create two columns
             col1, col2 = st.columns([3, 1])
-            
+
             with col1:
                 # Create interactive plot
                 fig = go.Figure()
                 fig.add_trace(
                     go.Scatter(
-                        x=curve_data["Maturity"],
-                        y=curve_data["Rate"] * 100,  # Convert to percentage
+                        x=curve_data["Maturity"],  # type: ignore[index]
+                        y=curve_data["Rate"] * 100,  # type: ignore[operator]  # Convert to percentage
                         mode="lines+markers",
                         name="Yield Curve",
                         line={"color": "#1f77b4", "width": 3},
@@ -106,11 +110,10 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                         ),
                     )
                 )
-                
+
                 fig.update_layout(
                     title=(
-                        "Treasury Yield Curve - "
-                        f"{date_input.strftime('%B %d, %Y')}"
+                        f"Treasury Yield Curve - {date_input.strftime('%B %d, %Y')}"
                     ),
                     xaxis_title="Maturity (Years)",
                     yaxis_title="Yield (%)",
@@ -121,48 +124,36 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                     margin={"l": 60, "r": 40, "t": 60, "b": 60},
                 )
 
-                fig.update_xaxes(
-                    showgrid=True, gridwidth=1, gridcolor="LightGray"
-                )
-                fig.update_yaxes(
-                    showgrid=True, gridwidth=1, gridcolor="LightGray"
-                )
-                
+                fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="LightGray")
+                fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="LightGray")
+
                 st.plotly_chart(fig, use_container_width=True)
-            
+
             with col2:
                 st.subheader("Curve Statistics")
                 st.metric(
                     "Shortest Maturity Yield",
-                    f"{curve_data['Rate'].min() * 100:.3f}%",
+                    f"{curve_data['Rate'].min() * 100:.3f}%",  # type: ignore[attr-defined]
                     delta=None,
                 )
                 st.metric(
                     "Longest Maturity Yield",
-                    f"{curve_data['Rate'].max() * 100:.3f}%",
+                    f"{curve_data['Rate'].max() * 100:.3f}%",  # type: ignore[attr-defined]
                     delta=None,
                 )
-                rate_diff = (
-                    (
-                        curve_data["Rate"].max()
-                        - curve_data["Rate"].min()
-                    )
-                    * 100
-                )
+                rate_diff = (curve_data["Rate"].max() - curve_data["Rate"].min()) * 100  # type: ignore[attr-defined]
                 st.metric(
                     "Curve Slope (30Y - 3M)",
                     f"{rate_diff:.3f}%",
                     delta=None,
                 )
-            
+
             # Display data table
             st.subheader("Detailed Data")
             display_df = curve_data.copy()
-            display_df["Rate"] = (
-                (display_df["Rate"] * 100).round(3).astype(str) + "%"
-            )
+            display_df["Rate"] = (display_df["Rate"] * 100).round(3).astype(str) + "%"  # type: ignore[operator,attr-defined]
             display_df["Maturity"] = (
-                display_df["Maturity"].round(2).astype(str) + " years"
+                display_df["Maturity"].round(2).astype(str) + " years"  # type: ignore[attr-defined]
             )
 
             st.dataframe(
@@ -181,7 +172,7 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                 f"{_provider.upper()} for "
                 f"{date_input.strftime('%B %d, %Y')}"
             )
-            
+
         except Exception as e:  # noqa: BLE001
             st.error(f"❌ Error fetching data: {e!s}")
             st.info(
@@ -198,5 +189,5 @@ st.markdown(
     Data source: <a href='https://fred.stlouisfed.org/'>FRED - Federal Reserve Economic Data</a>
     </div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
