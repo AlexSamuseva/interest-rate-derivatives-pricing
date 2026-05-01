@@ -30,7 +30,12 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = []
+dependencies = [
+  "streamlit",
+  "plotly",
+  "pandas",
+  "python-dotenv",
+]
 
 [project.urls]
 Homepage = "https://github.com/AlexSamuseva/interest-rate-derivatives-pricing"
