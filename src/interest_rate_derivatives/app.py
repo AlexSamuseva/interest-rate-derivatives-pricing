@@ -1,8 +1,11 @@
 """Streamlit dashboard for displaying interest rate yield curves from FRED."""
 
-import streamlit as st
-import plotly.graph_objects as go
 import datetime
+from typing import Optional
+
+import plotly.graph_objects as go
+import streamlit as st
+
 from interest_rate_derivatives.market_data import MarketDataClient
 
 # Page configuration
@@ -22,10 +25,10 @@ st.markdown(
 # Sidebar controls
 st.sidebar.header("Configuration")
 
-provider = st.sidebar.selectbox(
+_provider = st.sidebar.selectbox(
     "Data Provider",
     options=["fred"],
-    help="Select the data provider for interest rate data"
+    help="Select the data provider for interest rate data",
 )
 
 # API Key input
@@ -54,10 +57,24 @@ else:
 
 # Fetch data
 @st.cache_data(ttl=3600)
-def get_yield_curve(provider: str, date: str, api_key: str = None):
-    """Fetch yield curve data with caching."""
+def get_yield_curve(
+    provider: str, date: str, api_key: Optional[str] = None
+) -> dict:
+    """Fetch yield curve data with caching.
+
+    Args:
+        provider: Data provider name (e.g., "fred")
+        date: Date string in ISO format
+        api_key: Optional API key for the provider
+
+    Returns:
+        Dictionary with yield curve data
+    """
     client = MarketDataClient(provider=provider, api_key=api_key)
-    return client.get_term_structure(date=date if date != datetime.date.today().isoformat() else None)
+    date_param = (
+        date if date != datetime.date.today().isoformat() else None
+    )
+    return client.get_term_structure(date=date_param)
 
 # Display content
 if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fetch on load
@@ -65,7 +82,8 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
         try:
             date_str = date_input.isoformat()
             # Pass API key if provided
-            curve_data = get_yield_curve(provider, date_str, api_key=api_key_input if api_key_input else None)
+            api_key_param = api_key_input if api_key_input else None
+            curve_data = get_yield_curve(_provider, date_str, api_key=api_key_param)
             
             # Create two columns
             col1, col2 = st.columns([3, 1])
@@ -73,29 +91,41 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
             with col1:
                 # Create interactive plot
                 fig = go.Figure()
-                fig.add_trace(go.Scatter(
-                    x=curve_data['Maturity'],
-                    y=curve_data['Rate'] * 100,  # Convert to percentage
-                    mode='lines+markers',
-                    name='Yield Curve',
-                    line=dict(color='#1f77b4', width=3),
-                    marker=dict(size=10, color='#1f77b4'),
-                    hovertemplate='<b>Maturity:</b> %{x:.2f} years<br><b>Yield:</b> %{y:.3f}%<extra></extra>'
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=curve_data["Maturity"],
+                        y=curve_data["Rate"] * 100,  # Convert to percentage
+                        mode="lines+markers",
+                        name="Yield Curve",
+                        line=dict(color="#1f77b4", width=3),
+                        marker=dict(size=10, color="#1f77b4"),
+                        hovertemplate=(
+                            "<b>Maturity:</b> %{x:.2f} years<br>"
+                            "<b>Yield:</b> %{y:.3f}%<extra></extra>"
+                        ),
+                    )
+                )
                 
                 fig.update_layout(
-                    title=f"Treasury Yield Curve - {date_input.strftime('%B %d, %Y')}",
+                    title=(
+                        "Treasury Yield Curve - "
+                        f"{date_input.strftime('%B %d, %Y')}"
+                    ),
                     xaxis_title="Maturity (Years)",
                     yaxis_title="Yield (%)",
-                    hovermode='x unified',
-                    template='plotly_white',
+                    hovermode="x unified",
+                    template="plotly_white",
                     height=500,
                     font=dict(size=12),
                     margin=dict(l=60, r=40, t=60, b=60),
                 )
-                
-                fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
-                fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
+
+                fig.update_xaxes(
+                    showgrid=True, gridwidth=1, gridcolor="LightGray"
+                )
+                fig.update_yaxes(
+                    showgrid=True, gridwidth=1, gridcolor="LightGray"
+                )
                 
                 st.plotly_chart(fig, use_container_width=True)
             
@@ -104,25 +134,36 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                 st.metric(
                     "Shortest Maturity Yield",
                     f"{curve_data['Rate'].min() * 100:.3f}%",
-                    delta=None
+                    delta=None,
                 )
                 st.metric(
                     "Longest Maturity Yield",
                     f"{curve_data['Rate'].max() * 100:.3f}%",
-                    delta=None
+                    delta=None,
+                )
+                rate_diff = (
+                    (
+                        curve_data["Rate"].max()
+                        - curve_data["Rate"].min()
+                    )
+                    * 100
                 )
                 st.metric(
                     "Curve Slope (30Y - 3M)",
-                    f"{(curve_data['Rate'].max() - curve_data['Rate'].min()) * 100:.3f}%",
-                    delta=None
+                    f"{rate_diff:.3f}%",
+                    delta=None,
                 )
             
             # Display data table
             st.subheader("Detailed Data")
             display_df = curve_data.copy()
-            display_df['Rate'] = (display_df['Rate'] * 100).round(3).astype(str) + '%'
-            display_df['Maturity'] = display_df['Maturity'].round(2).astype(str) + ' years'
-            
+            display_df["Rate"] = (
+                (display_df["Rate"] * 100).round(3).astype(str) + "%"
+            )
+            display_df["Maturity"] = (
+                display_df["Maturity"].round(2).astype(str) + " years"
+            )
+
             st.dataframe(
                 display_df,
                 use_container_width=True,
@@ -130,19 +171,22 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                 column_config={
                     "Maturity": st.column_config.Column(width="medium"),
                     "Rate": st.column_config.Column(width="medium"),
-                }
+                },
             )
-            
+
             # Data info
             st.info(
-                f"✓ Data fetched successfully from {provider.upper()} for {date_input.strftime('%B %d, %Y')}"
+                "✓ Data fetched successfully from "
+                f"{_provider.upper()} for "
+                f"{date_input.strftime('%B %d, %Y')}"
             )
             
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             st.error(f"❌ Error fetching data: {str(e)}")
             st.info(
-                "💡 **Tip:** Enter your FRED API key in the sidebar for real market data, "
-                "or configure it in `.env` file. Without an API key, you'll see placeholder data."
+                "💡 **Tip:** Enter your FRED API key in the sidebar "
+                "for real market data, or configure it in `.env` file. "
+                "Without an API key, you'll see placeholder data."
             )
 
 # Footer
