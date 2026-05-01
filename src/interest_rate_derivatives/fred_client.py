@@ -1,11 +1,10 @@
 """FRED (Federal Reserve Economic Data) API client for interest rate data."""
 
-import os
-from typing import Optional
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 import json
 import logging
+import os
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ class FREDAPIClient:
     
     BASE_URL = "https://api.stlouisfed.org/fred"
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """
         Initialize FRED API client.
         
@@ -41,9 +40,9 @@ class FREDAPIClient:
     def get_series(
         self,
         series_id: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-    ) -> Optional[dict]:
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> dict[str, object] | None:
         """
         Fetch a single series from FRED API.
         
@@ -79,27 +78,27 @@ class FREDAPIClient:
                 content = response.read().decode("utf-8")
                 return json.loads(content)
         except HTTPError as e:
-            logger.error(f"HTTP error fetching {series_id}: {e.code} {e.reason}")
+            logger.exception("HTTP error fetching %s: %s %s", series_id, e.code, e.reason)
             return None
         except URLError as e:
-            logger.error(f"Network error fetching {series_id}: {e.reason}")
+            logger.exception("Network error fetching %s: %s", series_id, e.reason)
             return None
         except TimeoutError:
-            logger.error(f"Timeout fetching {series_id}")
+            logger.exception("Timeout fetching %s", series_id)
             return None
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response for {series_id}: {e}")
+            logger.exception("Failed to parse JSON response for %s: %s", series_id, e)
             return None
-        except Exception as e:
-            logger.error(f"Unexpected error fetching {series_id}: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.exception("Unexpected error fetching %s: %s", series_id, e)
             return None
     
     def get_multiple_series(
         self,
-        series_ids: list,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-    ) -> dict:
+        series_ids: list[str],
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> dict[str, object]:
         """
         Fetch multiple series from FRED API.
         

@@ -1,7 +1,6 @@
 """Streamlit dashboard for displaying interest rate yield curves from FRED."""
 
 import datetime
-from typing import Optional
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -41,8 +40,8 @@ api_key_input = st.sidebar.text_input(
 
 date_input = st.sidebar.date_input(
     "Select Date",
-    value=datetime.date.today(),
-    help="Choose the date for which to fetch the yield curve"
+    value=datetime.datetime.now(tz=datetime.timezone.utc).date(),
+    help="Choose the date for which to fetch the yield curve",
 )
 
 # Fetch data button
@@ -53,13 +52,13 @@ if st.sidebar.button("🔄 Fetch Data", use_container_width=True):
 if api_key_input:
     st.sidebar.success("✓ API key configured (via UI)")
 else:
-    st.sidebar.info("ℹ️ Using .env file or placeholder data")
+    st.sidebar.info("i️ Using .env file or placeholder data")
 
 # Fetch data
 @st.cache_data(ttl=3600)
 def get_yield_curve(
-    provider: str, date: str, api_key: Optional[str] = None
-) -> dict:
+    provider: str, date: str, api_key: str | None = None
+) -> dict[str, object]:
     """Fetch yield curve data with caching.
 
     Args:
@@ -72,7 +71,9 @@ def get_yield_curve(
     """
     client = MarketDataClient(provider=provider, api_key=api_key)
     date_param = (
-        date if date != datetime.date.today().isoformat() else None
+        date
+        if date != datetime.datetime.now(tz=datetime.timezone.utc).date().isoformat()
+        else None
     )
     return client.get_term_structure(date=date_param)
 
@@ -97,8 +98,8 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                         y=curve_data["Rate"] * 100,  # Convert to percentage
                         mode="lines+markers",
                         name="Yield Curve",
-                        line=dict(color="#1f77b4", width=3),
-                        marker=dict(size=10, color="#1f77b4"),
+                        line={"color": "#1f77b4", "width": 3},
+                        marker={"size": 10, "color": "#1f77b4"},
                         hovertemplate=(
                             "<b>Maturity:</b> %{x:.2f} years<br>"
                             "<b>Yield:</b> %{y:.3f}%<extra></extra>"
@@ -116,8 +117,8 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
                     hovermode="x unified",
                     template="plotly_white",
                     height=500,
-                    font=dict(size=12),
-                    margin=dict(l=60, r=40, t=60, b=60),
+                    font={"size": 12},
+                    margin={"l": 60, "r": 40, "t": 60, "b": 60},
                 )
 
                 fig.update_xaxes(
@@ -182,7 +183,7 @@ if st.sidebar.button("Refresh", use_container_width=True) or True:  # Always fet
             )
             
         except Exception as e:  # noqa: BLE001
-            st.error(f"❌ Error fetching data: {str(e)}")
+            st.error(f"❌ Error fetching data: {e!s}")
             st.info(
                 "💡 **Tip:** Enter your FRED API key in the sidebar "
                 "for real market data, or configure it in `.env` file. "

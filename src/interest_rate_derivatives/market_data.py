@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Optional
+from typing import ClassVar
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -17,13 +17,18 @@ class MarketDataClient:
     """Client for fetching real-time interest rate market data."""
     
     # Tenors in years mapped to FRED series IDs (Treasury Constant Maturity)
-    TENOR_MAPPING = {
-        1/12: "DGS1MO", 0.25: "DGS3MO", 0.5: "DGS6MO", 
-        1.0: "DGS1", 2.0: "DGS2", 5.0: "DGS5", 
-        10.0: "DGS10", 30.0: "DGS30"
+    TENOR_MAPPING: ClassVar[dict[float, str]] = {
+        1 / 12: "DGS1MO",
+        0.25: "DGS3MO",
+        0.5: "DGS6MO",
+        1.0: "DGS1",
+        2.0: "DGS2",
+        5.0: "DGS5",
+        10.0: "DGS10",
+        30.0: "DGS30",
     }
     
-    def __init__(self, provider: str = "fred", api_key: Optional[str] = None):
+    def __init__(self, provider: str = "fred", api_key: str | None = None):
         """
         Initialize market data client.
         
@@ -37,7 +42,7 @@ class MarketDataClient:
         else:
             self.fred_client = None
 
-    def get_term_structure(self, date: Optional[str] = None) -> pd.DataFrame:
+    def get_term_structure(self, date: str | None = None) -> pd.DataFrame:
         """
         Fetches the current interest rate term structure.
         
@@ -47,14 +52,20 @@ class MarketDataClient:
         Returns:
             DataFrame with columns ["Maturity", "Rate"] containing the yield curve
         """
-        logger.info(f"Fetching term structure from provider: {self.provider}")
+        logger.info("Fetching term structure from provider: %s", self.provider)
         
         if self.provider != "fred" or not self.fred_client:
             return self._get_placeholder_curve()
         
         # Calculate date range for FRED API
-        end_date = pd.to_datetime(date).strftime("%Y-%m-%d") if date else datetime.date.today().isoformat()
-        start_date = (pd.to_datetime(end_date) - datetime.timedelta(days=10)).strftime("%Y-%m-%d")
+        end_date = (
+            pd.to_datetime(date).strftime("%Y-%m-%d")
+            if date
+            else datetime.datetime.now(tz=datetime.timezone.utc).date().isoformat()
+        )
+        start_date = (
+            pd.to_datetime(end_date) - datetime.timedelta(days=10)
+        ).strftime("%Y-%m-%d")
         
         # Fetch all series
         series_ids = list(self.TENOR_MAPPING.values())
@@ -68,12 +79,12 @@ class MarketDataClient:
         latest_rates = []
         for tenor, series_id in self.TENOR_MAPPING.items():
             if series_id not in data:
-                logger.debug(f"Series {series_id} not found in API response")
+                logger.debug("Series %s not found in API response", series_id)
                 continue
             
             observations = data[series_id].get("observations", [])
             if not observations:
-                logger.debug(f"No observations for series {series_id}")
+                logger.debug("No observations for series %s", series_id)
                 continue
             
             # Get the latest non-null observation
@@ -88,13 +99,17 @@ class MarketDataClient:
                     rate = float(latest_obs["value"]) / 100.0
                     latest_rates.append((tenor, rate))
                 except (ValueError, TypeError):
-                    logger.debug(f"Could not parse rate for {series_id}: {latest_obs.get('value')}")
+                    logger.debug(
+                        "Could not parse rate for %s: %s",
+                        series_id,
+                        latest_obs.get("value"),
+                    )
                     continue
         
         if latest_rates:
-            df = pd.DataFrame(latest_rates, columns=["Maturity", "Rate"])
-            df = df.sort_values("Maturity").reset_index(drop=True)
-            return df
+            return pd.DataFrame(latest_rates, columns=["Maturity", "Rate"]).sort_values(
+                "Maturity"
+            ).reset_index(drop=True)
         
         logger.warning("No valid rates extracted from FRED data; falling back to placeholder curve")
         return self._get_placeholder_curve()
