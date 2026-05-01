@@ -80,9 +80,7 @@ def get_yield_curve(
 
 
 # Display content
-if (
-    st.sidebar.button("Refresh", use_container_width=True) or True
-):  # Always fetch on load
+if st.sidebar.button("Refresh", use_container_width=True):
     with st.spinner("Fetching data from FRED..."):
         try:
             date_str = date_input.isoformat()
@@ -173,7 +171,7 @@ if (
                 f"{date_input.strftime('%B %d, %Y')}"
             )
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # pylint: disable=broad-exception-caught  # noqa: BLE001
             st.error(f"❌ Error fetching data: {e!s}")
             st.info(
                 "💡 **Tip:** Enter your FRED API key in the sidebar "

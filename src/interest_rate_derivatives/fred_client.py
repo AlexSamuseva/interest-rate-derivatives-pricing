@@ -90,7 +90,7 @@ class FREDAPIClient:
         except json.JSONDecodeError:
             logger.exception("Failed to parse JSON response for %s", series_id)
             return None
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Unexpected error fetching %s", series_id)
             return None
 
