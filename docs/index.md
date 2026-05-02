@@ -4,6 +4,7 @@
 :maxdepth: 2
 :hidden:
 
+theory
 ```
 
 ```{include} ../README.md
