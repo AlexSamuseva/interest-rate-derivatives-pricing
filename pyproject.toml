@@ -173,4 +173,4 @@ messages_control.disable = [
 ]
 
 [tool.codespell]
-ignore-words-list = "ois,te,nd"
+ignore-words-list = "ois,te,nd,normale"
