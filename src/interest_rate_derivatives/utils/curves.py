@@ -32,9 +32,13 @@ Brigo, D., & Mercurio, F. (2006). Interest Rate Models - Theory and
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from numpy.typing import NDArray
 from scipy.interpolate import CubicSpline
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 class DiscountCurve:
@@ -77,23 +81,23 @@ class DiscountCurve:
         self._rates = np.asarray(zero_rates, dtype=float)
 
         if self._mats.shape != self._rates.shape:
-            raise ValueError(
+            msg = (
                 "maturities and zero_rates must have the same length. "
                 f"Got {len(self._mats)} maturities and {len(self._rates)} rates."
             )
+            raise ValueError(msg)
 
         if not np.all(np.diff(self._mats) > 0):
-            raise ValueError(
-                "maturities must be strictly increasing. "
-                f"Got: {self._mats.tolist()}"
-            )
+            msg = f"maturities must be strictly increasing. Got: {self._mats.tolist()}"
+            raise ValueError(msg)
 
         if np.any(self._rates < 0):
-            raise ValueError(
+            msg = (
                 "zero_rates must be non-negative. "
                 f"Got negative rates at maturities: "
                 f"{self._mats[self._rates < 0].tolist()}"
             )
+            raise ValueError(msg)
 
         # Build cubic spline interpolator on zero rates
         # extrapolate=True means flat extrapolation beyond the pillar points
@@ -204,9 +208,8 @@ class DiscountCurve:
         t2_arr = np.asarray(t2, dtype=float)
 
         if np.any(t2_arr <= t1_arr):
-            raise ValueError(
-                f"t2 must be greater than t1. Got t1={t1}, t2={t2}."
-            )
+            msg = f"t2 must be greater than t1. Got t1={t1}, t2={t2}."
+            raise ValueError(msg)
 
         P1 = self(t1_arr)
         P2 = self(t2_arr)
@@ -247,7 +250,7 @@ class DiscountCurve:
         P_end = self(payment_dates[-1])
         annuity = sum(
             delta * self(T)
-            for T, delta in zip(payment_dates, day_count_fractions)
+            for T, delta in zip(payment_dates, day_count_fractions, strict=True)
         )
         return float((P_start - P_end) / annuity)
 
@@ -278,10 +281,12 @@ class DiscountCurve:
         float
             Annuity factor A.
         """
-        return float(sum(
-            delta * self(T)
-            for T, delta in zip(payment_dates, day_count_fractions)
-        ))
+        return float(
+            sum(
+                delta * self(T)
+                for T, delta in zip(payment_dates, day_count_fractions, strict=True)
+            )
+        )
 
     def summary(self) -> dict[str, NDArray]:
         """
@@ -329,9 +334,8 @@ class FlatCurve:
 
     def __init__(self, flat_rate: float) -> None:
         if flat_rate < 0:
-            raise ValueError(
-                f"flat_rate must be non-negative. Got {flat_rate}."
-            )
+            msg = f"flat_rate must be non-negative. Got {flat_rate}."
+            raise ValueError(msg)
         self.flat_rate = float(flat_rate)
 
     def __call__(self, t: float | NDArray) -> float | NDArray:
@@ -423,22 +427,20 @@ def generate_payment_schedule(
     1.5
     """
     if swap_end <= swap_start:
-        raise ValueError(
+        msg = (
             f"swap_end must be greater than swap_start. "
             f"Got swap_start={swap_start}, swap_end={swap_end}."
         )
+        raise ValueError(msg)
+
     if frequency not in (1, 2, 4, 12):
-        raise ValueError(
-            f"frequency must be 1, 2, 4, or 12. Got {frequency}."
-        )
+        msg = f"frequency must be 1, 2, 4, or 12. Got {frequency}."
+        raise ValueError(msg)
 
     period = 1.0 / frequency
     n_periods = round((swap_end - swap_start) * frequency)
 
-    payment_dates = [
-        swap_start + (i + 1) * period
-        for i in range(n_periods)
-    ]
+    payment_dates = [swap_start + (i + 1) * period for i in range(n_periods)]
     day_count_fractions = [period] * n_periods
 
     return payment_dates, day_count_fractions

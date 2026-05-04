@@ -50,8 +50,15 @@ Brigo, D., & Mercurio, F. (2006). Interest Rate Models - Theory and
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from numpy.typing import NDArray
+from scipy.stats import norm
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from numpy.typing import NDArray
 
 
 class HullWhiteModel:
@@ -78,7 +85,7 @@ class HullWhiteModel:
         Short rate volatility. Must be strictly positive.
         Controls the overall level of interest rate uncertainty.
         Typical calibrated values: 0.005 to 0.020.
-    discount_factor : callable
+    discount_factor : Callable
         A callable that takes a maturity T (float or ndarray) and returns
         the discount factor P(0, T). This should be either a DiscountCurve
         or FlatCurve instance from utils/curves.py.
@@ -98,16 +105,14 @@ class HullWhiteModel:
         self,
         a: float,
         sigma: float,
-        discount_factor: object,
+        discount_factor: Callable,
     ) -> None:
         if a <= 0:
-            raise ValueError(
-                f"Mean reversion speed 'a' must be positive. Got {a}."
-            )
+            msg = f"Mean reversion speed 'a' must be positive. Got {a}."
+            raise ValueError(msg)
         if sigma <= 0:
-            raise ValueError(
-                f"Volatility 'sigma' must be positive. Got {sigma}."
-            )
+            msg = f"Volatility 'sigma' must be positive. Got {sigma}."
+            raise ValueError(msg)
 
         self.a = float(a)
         self.sigma = float(sigma)
@@ -200,8 +205,8 @@ class HullWhiteModel:
 
         # Convexity correction term
         convexity = (
-            (self.sigma ** 2 / (4.0 * self.a))
-            * Bval ** 2
+            (self.sigma**2 / (4.0 * self.a))
+            * Bval**2
             * (1.0 - np.exp(-2.0 * self.a * t))
         )
 
@@ -249,9 +254,7 @@ class HullWhiteModel:
         >>> model.zcb_price(0.0, 5.0, 0.05)
         0.7788...
         """
-        return np.exp(
-            self.ln_A(t, T) - self.B(t, T) * np.asarray(r_t, dtype=float)
-        )
+        return np.exp(self.ln_A(t, T) - self.B(t, T) * np.asarray(r_t, dtype=float))
 
     # ------------------------------------------------------------------
     # European option on a zero-coupon bond
@@ -317,8 +320,6 @@ class HullWhiteModel:
         >>> model.zcb_option_price(1.0, 5.0, 0.80, is_call=False)
         0.0023...
         """
-        from scipy.stats import norm
-
         T_exp = option_expiry
         T_mat = bond_maturity
 
@@ -329,33 +330,22 @@ class HullWhiteModel:
         sigma_P = (
             self.sigma
             * self.B(T_exp, T_mat)
-            * np.sqrt(
-                (1.0 - np.exp(-2.0 * self.a * T_exp)) / (2.0 * self.a)
-            )
+            * np.sqrt((1.0 - np.exp(-2.0 * self.a * T_exp)) / (2.0 * self.a))
         )
 
         # Degenerate case — no uncertainty, return intrinsic value
         if sigma_P < 1e-12:
             if is_call:
                 return float(max(P0_Tmat - strike * P0_Texp, 0.0))
-            else:
-                return float(max(strike * P0_Texp - P0_Tmat, 0.0))
+            return float(max(strike * P0_Texp - P0_Tmat, 0.0))
 
-        h = (
-            np.log(P0_Tmat / (P0_Texp * strike)) / sigma_P
-            + sigma_P / 2.0
-        )
+        h = np.log(P0_Tmat / (P0_Texp * strike)) / sigma_P + sigma_P / 2.0
 
         if is_call:
             return float(
-                P0_Tmat * norm.cdf(h)
-                - strike * P0_Texp * norm.cdf(h - sigma_P)
+                P0_Tmat * norm.cdf(h) - strike * P0_Texp * norm.cdf(h - sigma_P)
             )
-        else:
-            return float(
-                strike * P0_Texp * norm.cdf(-h + sigma_P)
-                - P0_Tmat * norm.cdf(-h)
-            )
+        return float(strike * P0_Texp * norm.cdf(-h + sigma_P) - P0_Tmat * norm.cdf(-h))
 
     # ------------------------------------------------------------------
     # Short rate distribution and drift
@@ -386,9 +376,8 @@ class HullWhiteModel:
             Conditional standard deviation of r(t) given r(s).
         """
         tau = t - s
-        variance = (
-            (self.sigma ** 2 / (2.0 * self.a))
-            * (1.0 - np.exp(-2.0 * self.a * tau))
+        variance = (self.sigma**2 / (2.0 * self.a)) * (
+            1.0 - np.exp(-2.0 * self.a * tau)
         )
         return float(np.sqrt(variance))
 
@@ -409,9 +398,9 @@ class HullWhiteModel:
             theta(t) = df(0,t)/dt + a*f(0,t) + sigma^2/(2a)*(1-exp(-2at))
 
         where:
-            df(0,t)/dt               : slope of instantaneous forward curve
-            a*f(0,t)                 : mean reversion adjustment
-            sigma^2/(2a)*(1-exp(...)):  convexity correction
+            df(0,t)/dt                : slope of instantaneous forward curve
+            a*f(0,t)                  : mean reversion adjustment
+            sigma^2/(2a)*(1-exp(...)) : convexity correction
 
         Computed numerically using finite differences on f(0,t).
 
@@ -432,9 +421,8 @@ class HullWhiteModel:
         f0t_h = self._forward_rate_from_curve(t_val + h)
 
         df_dt = (f0t_h - f0t) / h
-        vol_term = (
-            (self.sigma ** 2 / (2.0 * self.a))
-            * (1.0 - np.exp(-2.0 * self.a * t_val))
+        vol_term = (self.sigma**2 / (2.0 * self.a)) * (
+            1.0 - np.exp(-2.0 * self.a * t_val)
         )
 
         return float(df_dt + self.a * f0t + vol_term)
