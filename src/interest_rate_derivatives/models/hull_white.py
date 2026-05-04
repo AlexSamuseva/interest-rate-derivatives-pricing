@@ -173,10 +173,10 @@ class HullWhiteModel:
         inconsistent with market prices.
 
         The three components are:
-        1. ln(P(0,T)/P(0,t))         : ratio of market discount factors
-        2. B(t,T) * f(0,t)           : forward rate adjustment
-        3. sigma^2/(4a)*B^2*(...)    : convexity correction (volatility
-                                       adjustment from Jensen's inequality)
+        1. ln(P(0,T)/P(0,t))      : ratio of market discount factors
+        2. B(t,T) * f(0,t)        : forward rate adjustment
+        3. sigma^2/(4a)*B^2*(...) : convexity correction arising from
+                                    Jensen's inequality
 
         Parameters
         ----------
@@ -358,7 +358,7 @@ class HullWhiteModel:
             )
 
     # ------------------------------------------------------------------
-    # Short rate distribution
+    # Short rate distribution and drift
     # ------------------------------------------------------------------
 
     def short_rate_std(self, s: float, t: float) -> float:
@@ -392,6 +392,53 @@ class HullWhiteModel:
         )
         return float(np.sqrt(variance))
 
+    def theta(self, t: float) -> float:
+        """
+        Compute the time-dependent drift theta(t).
+
+        theta(t) is a fundamental component of the Hull-White model — it
+        is the time-dependent drift that ensures the model reproduces the
+        initial market discount curve P(0, T) exactly for all maturities.
+
+        Without theta(t), the model reduces to Vasicek (1977) which does
+        not fit the initial term structure. theta(t) is what makes
+        Hull-White an arbitrage-free model consistent with market prices.
+
+        The formula is:
+
+            theta(t) = df(0,t)/dt + a*f(0,t) + sigma^2/(2a)*(1-exp(-2at))
+
+        where:
+            df(0,t)/dt               : slope of instantaneous forward curve
+            a*f(0,t)                 : mean reversion adjustment
+            sigma^2/(2a)*(1-exp(...)):  convexity correction
+
+        Computed numerically using finite differences on f(0,t).
+
+        Parameters
+        ----------
+        t : float
+            Time in years.
+
+        Returns
+        -------
+        float
+            theta(t).
+        """
+        h = 1e-5
+        t_val = max(float(t), h)
+
+        f0t = self._forward_rate_from_curve(t_val)
+        f0t_h = self._forward_rate_from_curve(t_val + h)
+
+        df_dt = (f0t_h - f0t) / h
+        vol_term = (
+            (self.sigma ** 2 / (2.0 * self.a))
+            * (1.0 - np.exp(-2.0 * self.a * t_val))
+        )
+
+        return float(df_dt + self.a * f0t + vol_term)
+
     # ------------------------------------------------------------------
     # Private helper methods
     # ------------------------------------------------------------------
@@ -403,10 +450,12 @@ class HullWhiteModel:
         """
         Compute the instantaneous forward rate f(0, t) from the discount curve.
 
-        Uses finite differences if the curve does not have an analytical
-        instantaneous_forward_rate method, otherwise calls it directly.
+        Uses the analytical instantaneous_forward_rate method if available
+        on the curve object — which both DiscountCurve and FlatCurve
+        provide. Falls back to finite differences for any other callable
+        discount curve.
 
-        This is a private method — it is only used internally by ln_A.
+        This is a private method used internally by ln_A and theta.
 
         Parameters
         ----------
@@ -418,7 +467,6 @@ class HullWhiteModel:
         float or ndarray
             Instantaneous forward rate f(0, t).
         """
-        # Use analytical derivative if available (DiscountCurve / FlatCurve)
         if hasattr(self.discount_factor, "instantaneous_forward_rate"):
             return self.discount_factor.instantaneous_forward_rate(t)
 
