@@ -50,6 +50,7 @@ html_theme_options: dict[str, Any] = {
 
 myst_enable_extensions = [
     "colon_fence",
+    "dollarmath",
 ]
 
 intersphinx_mapping = {
