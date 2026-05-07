@@ -36,6 +36,7 @@ dependencies = [
   "pandas",
   "python-dotenv",
   "numpy>=1.26.0,<2.0",
+  "scipy",
 ]
 
 [project.urls]
@@ -157,12 +158,12 @@ ignore = [
 "tests/**" = ["T20"]
 "noxfile.py" = ["T20"]
 
-
 [tool.pylint]
 py-version = "3.10"
 ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
+good-names = ["B", "T", "P", "P1", "P2", "P0t", "P0T", "P_start", "P_end", "P_up", "P_dn", "P0_Texp", "P0_Tmat", "T_exp", "T_mat", "Bval", "sigma_P", "h", "f0t", "ln_A"]
 messages_control.disable = [
   "design",
   "fixme",
