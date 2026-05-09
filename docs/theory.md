@@ -35,7 +35,7 @@ money market instruments. They satisfy:
 
 $$P(0, 0) = 1, \quad P(0, T) \in (0, 1) \text{ for } T > 0$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 and are strictly decreasing in $T$ under positive interest rates.
 
@@ -46,13 +46,13 @@ equates a single compounding to the observed discount factor:
 
 $$P(0, T) = e^{-z(T) \cdot T}$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 equivalently:
 
 $$z(T) = -\frac{\ln P(0, T)}{T}$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 A plot of $z(T)$ against $T$ is the **zero curve** or **zero-coupon yield
 curve**. Under normal market conditions it is upward sloping — longer maturities
@@ -66,7 +66,7 @@ borrowing over an infinitesimally short interval $[T, T + dT]$:
 
 $$f(0, T) = -\frac{\partial \ln P(0, T)}{\partial T}$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 Forward rates are not directly observable but are implied by the shape of the
 discount curve. They play a central role in the Hull-White model because the
@@ -76,7 +76,7 @@ The relationship between discount factors and forward rates is:
 
 $$P(0, T) = \exp\left(-\int_0^T f(0, u)\, du\right)$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 ### 2.4 The Market Discount Curve
 
@@ -132,7 +132,7 @@ By no-arbitrage, the value of the floating leg at time $t \leq T_0$ equals:
 
 $$V_{\text{float}}(t) = N \cdot [P(t, T_0) - P(t, T_n)]$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 This result follows from the fact that a floating rate bond resets to par at
 each payment date, so its value equals par at $T_0$, discounted back to $t$.
@@ -141,7 +141,7 @@ The value of the fixed leg is simply the present value of the fixed cash flows:
 
 $$V_{\text{fixed}}(t) = N \cdot K \cdot \sum_{i=1}^n \delta_i \cdot P(t, T_i)$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 The **net present value of the swap** from the perspective of the fixed-rate
 payer is:
@@ -151,7 +151,7 @@ $$
 = N \left[ P(t, T_0) - P(t, T_n) - K \sum_{i=1}^n \delta_i P(t, T_i) \right]
 $$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 ### 4.3 The Par Swap Rate and Annuity Factor
 
@@ -160,14 +160,14 @@ each payment date — the swap's sensitivity to a change in the fixed rate:
 
 $$A(t) = \sum_{i=1}^n \delta_i \cdot P(t, T_i)$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 The **par swap rate** $S(t)$ is defined as the fixed rate $K$ that makes the
 swap have zero NPV at time $t$:
 
 $$S(t) = \frac{P(t, T_0) - P(t, T_n)}{A(t)}$$
 
-*(Brigo & Mercurio, 2006, Ch. 1)*
+_(Brigo & Mercurio, 2006, Ch. 1)_
 
 The par swap rate is the market's best estimate of the average level of the
 floating rate over the life of the swap. It is directly observable from
@@ -200,7 +200,7 @@ The **payoff of a payer swaption** at expiry $T_0$ is:
 
 $$V_{\text{payer}}(T_0) = N \cdot A(T_0) \cdot \max(S(T_0) - K,\ 0)$$
 
-*(Brigo & Mercurio, 2006, Ch. 3)*
+_(Brigo & Mercurio, 2006, Ch. 3)_
 
 where $S(T_0)$ is the par swap rate at $T_0$ and $A(T_0)$ is the realised
 annuity factor at $T_0$. Both $S(T_0)$ and $A(T_0)$ are random at time 0 because
@@ -210,7 +210,7 @@ Similarly, the **payoff of a receiver swaption** is:
 
 $$V_{\text{receiver}}(T_0) = N \cdot A(T_0) \cdot \max(K - S(T_0),\ 0)$$
 
-*(Brigo & Mercurio, 2006, Ch. 3)*
+_(Brigo & Mercurio, 2006, Ch. 3)_
 
 ### 5.3 Equivalence to a Coupon Bond Option
 
@@ -221,13 +221,13 @@ a floating-rate bond (which is worth par at $T_0$). Therefore:
 
 $$V_{\text{payer}}(T_0) = N \cdot \max\!\left(1 - CB(T_0),\ 0\right)$$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 where the **coupon bond** $CB(t)$ is:
 
 $$CB(t) = \sum_{i=1}^n c_i \cdot P(t, T_i)$$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 with coupon weights:
 
@@ -264,7 +264,7 @@ interest rate derivative with payoff $X$ at time $T$ is:
 
 $$V(0) = \mathbb{E}^{\mathbb{Q}}\!\left[e^{-\int_0^T r(u)\, du} \cdot X\right]$$
 
-*(Brigo & Mercurio, 2006, Ch. 2)*
+_(Brigo & Mercurio, 2006, Ch. 2)_
 
 The key requirement of any short rate model is that it **reproduces today's
 market discount curve exactly** — otherwise the model misprices even the
@@ -284,7 +284,7 @@ rate $r(t)$ follows:
 
 $$dr(t) = [\theta(t) - a \cdot r(t)]\, dt + \sigma\, dW^{\mathbb{Q}}(t)$$
 
-*(Hull & White, 1990)*
+_(Hull & White, 1990)_
 
 where:
 
@@ -328,7 +328,7 @@ $$
 + \frac{\sigma^2}{2a}\left(1 - e^{-2at}\right)
 $$
 
-*(Hull & White, 1990; Brigo & Mercurio, 2006, Ch. 3)*
+_(Hull & White, 1990; Brigo & Mercurio, 2006, Ch. 3)_
 
 where $f(0, t)$ is the market instantaneous forward rate. This formula shows
 that $\theta(t)$ is fully determined by the market curve and the model
@@ -345,7 +345,7 @@ distribution** at any future time $t$, conditional on $r(s)$:
 
 $$r(t)\,|\,r(s) \sim \mathcal{N}\!\left(\mu(s,t),\ \nu^2(s,t)\right)$$
 
-*(Hull & White, 1990; Brigo & Mercurio, 2006, Ch. 3)*
+_(Hull & White, 1990; Brigo & Mercurio, 2006, Ch. 3)_
 
 with conditional mean and variance:
 
@@ -354,11 +354,11 @@ $$
 + \int_s^t \theta(u)\,e^{-a(t-u)}\,du
 $$
 
-*(Hull & White, 1990)*
+_(Hull & White, 1990)_
 
 $$\nu^2(s,t) = \frac{\sigma^2}{2a}\left(1 - e^{-2a(t-s)}\right)$$
 
-*(Hull & White, 1990)*
+_(Hull & White, 1990)_
 
 The Gaussian structure is what makes the model analytically tractable. It also
 implies that the short rate can become negative — a known limitation that is
@@ -372,20 +372,20 @@ expression:
 
 $$P(t, T) = A(t, T) \cdot \exp\!\bigl(-B(t, T) \cdot r(t)\bigr)$$
 
-*(Hull & White, 1990; Brigo & Mercurio, 2006, Ch. 3)*
+_(Hull & White, 1990; Brigo & Mercurio, 2006, Ch. 3)_
 
 where the two functions $B(t,T)$ and $A(t,T)$ are deterministic:
 
 $$B(t, T) = \frac{1 - e^{-a(T-t)}}{a}$$
 
-*(Hull & White, 1990)*
+_(Hull & White, 1990)_
 
 $$
 \ln A(t, T) = \ln\frac{P(0,T)}{P(0,t)} + B(t,T) \cdot f(0,t)
 - \frac{\sigma^2}{4a}\,B(t,T)^2\,\left(1 - e^{-2at}\right)
 $$
 
-*(Hull & White, 1990)*
+_(Hull & White, 1990)_
 
 **Interpretation of $B(t,T)$:**
 
@@ -394,7 +394,7 @@ analogous to modified duration in classical fixed income. It satisfies:
 
 $$\frac{\partial \ln P(t,T)}{\partial r(t)} = -B(t,T)$$
 
-*(Hull & White, 1990)*
+_(Hull & White, 1990)_
 
 Key properties:
 
@@ -427,7 +427,7 @@ $$
 = P(0, T_{\text{mat}})\,N(h) - K\,P(0, T_{\exp})\,N(h - \sigma_P)
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 The **put price** follows from put-call parity:
 
@@ -436,7 +436,7 @@ $$
 = K\,P(0, T_{\exp})\,N(-h + \sigma_P) - P(0, T_{\text{mat}})\,N(-h)
 $$
 
-*(Brigo & Mercurio, 2006, Ch. 3)*
+_(Brigo & Mercurio, 2006, Ch. 3)_
 
 where $N(\cdot)$ is the standard normal CDF and:
 
@@ -445,14 +445,14 @@ $$
 \cdot \sqrt{\frac{1 - e^{-2a\,T_{\exp}}}{2a}}
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 $$
 h = \frac{1}{\sigma_P}\ln\frac{P(0, T_{\text{mat}})}
 {P(0, T_{\exp}) \cdot K} + \frac{\sigma_P}{2}
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 **Interpretation of $\sigma_P$:**
 
@@ -488,7 +488,7 @@ K_i = P(T_0, T_i;\ r^*)
 = A(T_0, T_i)\,\exp\!\bigl(-B(T_0, T_i)\cdot r^*\bigr)
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 These are the ZCB prices that would prevail if the short rate equals $r^*$ at
 expiry.
@@ -500,7 +500,7 @@ $$
 = \sum_{i=1}^n c_i\,\max\!\bigl(K_i - P(T_0, T_i),\ 0\bigr)
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 **Why does this hold?** Because all ZCB prices move together through the single
 factor $r(T_0)$. The event $\{CB < 1\} = \{r > r^*\}$ implies
@@ -517,14 +517,14 @@ $$
 \cdot \text{ZBPut}(0;\ T_0,\ T_i,\ K_i)}
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 $$
 \boxed{V_{\text{receiver}} = \sum_{i=1}^n c_i
 \cdot \text{ZBCall}(0;\ T_0,\ T_i,\ K_i)}
 $$
 
-*(Jamshidian, 1989)*
+_(Jamshidian, 1989)_
 
 Each $\text{ZBPut}$ and $\text{ZBCall}$ is priced using the analytical formula
 from Section 8.
@@ -568,7 +568,7 @@ $$
 \right]^2
 $$
 
-*(Brigo & Mercurio, 2006, Ch. 3)*
+_(Brigo & Mercurio, 2006, Ch. 3)_
 
 where $w_k$ are instrument weights (typically equal weights, or vega-weighted to
 emphasise liquid instruments). The optimisation is carried out using the
@@ -598,7 +598,7 @@ the swap rate $S$ follows:
 
 $$dS = \sigma_N\,dW$$
 
-*(Bachelier, 1900)*
+_(Bachelier, 1900)_
 
 giving the swaption price:
 
@@ -607,14 +607,14 @@ V = N \cdot A \cdot \left[\omega\,(S_0 - K)\,N(\omega\,d)
 + \sigma_N\sqrt{T}\,\phi(d)\right]
 $$
 
-*(Bachelier, 1900)*
+_(Bachelier, 1900)_
 
 $$
 d = \frac{\omega\,(S_0 - K)}{\sigma_N\sqrt{T}},
 \quad \omega = +1\ \text{(payer)},\ -1\ \text{(receiver)}
 $$
 
-*(Bachelier, 1900)*
+_(Bachelier, 1900)_
 
 where $\phi(\cdot)$ is the standard normal PDF.
 
