@@ -43,6 +43,7 @@ Brigo, D., & Mercurio, F. (2006). Interest Rate Models - Theory and
 
 from __future__ import annotations
 
+import logging
 import warnings
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -56,6 +57,8 @@ from interest_rate_derivatives.utils.curves import generate_payment_schedule
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -83,6 +86,13 @@ class CalibrationInstrument:
         Observed market price of the swaption per unit notional.
     frequency : int
         Payment frequency of the underlying swap. Default 2 (semi-annual).
+    payment_period_unit : str, optional
+        Explicit payment period unit for bespoke schedules (e.g. 'MNTH',
+        'YEAR', 'DAIL'). When set with `payment_period_multiplier`, this
+        takes precedence over `frequency` in schedule generation.
+    payment_period_multiplier : float, optional
+        Interval multiplier for bespoke schedules. Example: unit='MNTH',
+        multiplier=5 means a payment every 5 months.
     weight : float
         Calibration weight for this instrument. Higher weight means
         the calibrator prioritises fitting this instrument more
@@ -98,6 +108,8 @@ class CalibrationInstrument:
     strike_rate: float
     market_price: float
     frequency: int = 2
+    payment_period_unit: str | None = None
+    payment_period_multiplier: float | None = None
     weight: float = 1.0
     label: str = field(default="")
 
@@ -271,6 +283,8 @@ class HullWhiteCalibrator:
             swap_start=instrument.swap_start,
             swap_end=instrument.swap_start + instrument.swap_tenor,
             frequency=instrument.frequency,
+            period_unit=instrument.payment_period_unit,
+            period_multiplier=instrument.payment_period_multiplier,
         )
 
         result = pricer.price(
@@ -394,13 +408,27 @@ class HullWhiteCalibrator:
         a_cal = float(opt_result.x[0])
         sigma_cal = float(opt_result.x[1])
 
-        # Compute diagnostics
+        # Compute diagnostics using _safe_model_price to avoid crashes on outliers
         model_prices = []
         errors_bps = []
+        failed_instruments = []
         for instr in self.instruments:
-            mp = self._model_price(a_cal, sigma_cal, instr)
+            mp = self._safe_model_price(a_cal, sigma_cal, instr)
             model_prices.append(mp)
-            errors_bps.append((mp - instr.market_price) * 10_000)
+            # Mark as NaN if pricing failed (penalty was returned)
+            if mp > instr.market_price * 100:
+                errors_bps.append(float("nan"))
+                failed_instruments.append(instr.label)
+            else:
+                errors_bps.append((mp - instr.market_price) * 10_000)
+
+        if failed_instruments:
+            logger.warning(
+                "Failed to price %s instrument(s) at calibrated parameters: %s%s",
+                len(failed_instruments),
+                ", ".join(failed_instruments[:5]),
+                "..." if len(failed_instruments) > 5 else "",
+            )
 
         return CalibrationResult(
             a=a_cal,

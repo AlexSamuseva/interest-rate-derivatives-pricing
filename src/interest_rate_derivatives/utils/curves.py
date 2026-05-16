@@ -391,6 +391,8 @@ def generate_payment_schedule(
     swap_start: float,
     swap_end: float,
     frequency: int = 2,
+    period_unit: str | None = None,
+    period_multiplier: float | None = None,
 ) -> tuple[list[float], list[float]]:
     """
     Generate a fixed-leg payment schedule for a vanilla interest rate swap.
@@ -410,6 +412,13 @@ def generate_payment_schedule(
         2  = semi-annual (most common for USD swaps)
         4  = quarterly
         12 = monthly
+    period_unit : str, optional
+        Custom DTCC-style payment period unit ('YEAR', 'MNTH', 'WEEK', 'DAIL').
+        If provided with `period_multiplier`, schedule generation uses explicit
+        interval steps instead of `frequency`.
+    period_multiplier : float, optional
+        Custom interval multiplier. Example: unit='MNTH', multiplier=5 means
+        payments every 5 months.
 
     Returns
     -------
@@ -432,6 +441,67 @@ def generate_payment_schedule(
             f"Got swap_start={swap_start}, swap_end={swap_end}."
         )
         raise ValueError(msg)
+
+    if period_unit is not None or period_multiplier is not None:
+        if period_unit is None or period_multiplier is None:
+            msg = (
+                "period_unit and period_multiplier must be provided together "
+                "for custom schedules."
+            )
+            raise ValueError(msg)
+
+        unit = period_unit.strip().upper()
+        unit_aliases = {
+            "YEAR": "YEAR",
+            "YEARS": "YEAR",
+            "YR": "YEAR",
+            "YRS": "YEAR",
+            "MNTH": "MNTH",
+            "MONTH": "MNTH",
+            "MONTHS": "MNTH",
+            "MTH": "MNTH",
+            "MTHS": "MNTH",
+            "WEEK": "WEEK",
+            "WEEKS": "WEEK",
+            "WK": "WEEK",
+            "WKS": "WEEK",
+            "DAIL": "DAIL",
+            "DAILY": "DAIL",
+            "DAY": "DAIL",
+            "DAYS": "DAIL",
+        }
+        normalized = unit_aliases.get(unit)
+        if normalized is None:
+            msg = f"Unsupported period_unit '{period_unit}'."
+            raise ValueError(msg)
+
+        multiplier = float(period_multiplier)
+        if multiplier <= 0:
+            msg = f"period_multiplier must be positive. Got {period_multiplier}."
+            raise ValueError(msg)
+
+        year_factor = {
+            "YEAR": 1.0,
+            "MNTH": 1.0 / 12.0,
+            "WEEK": 7.0 / 365.25,
+            "DAIL": 1.0 / 365.25,
+        }[normalized]
+        period = year_factor * multiplier
+
+        payment_dates: list[float] = []
+        day_count_fractions: list[float] = []
+        current = swap_start
+        tol = 1e-12
+
+        while current + period < swap_end - tol:
+            nxt = current + period
+            payment_dates.append(float(nxt))
+            day_count_fractions.append(float(nxt - current))
+            current = nxt
+
+        payment_dates.append(float(swap_end))
+        day_count_fractions.append(float(swap_end - current))
+        return payment_dates, day_count_fractions
 
     if frequency not in (1, 2, 4, 12):
         msg = f"frequency must be 1, 2, 4, or 12. Got {frequency}."
