@@ -127,7 +127,8 @@ class SwaptionPricer:
         payment_dates : list of float
             Fixed leg payment dates [T_1, ..., T_n] in years.
         day_count_fractions : list of float
-            Day count fractions [delta_1, ..., delta_n].
+            Day count fractions [delta_1, ..., delta_n]. Values can be
+            non-uniform for bespoke payment schedules (stubs/custom intervals).
 
         Returns
         -------
@@ -211,7 +212,7 @@ class SwaptionPricer:
         payment_dates : list of float
             Coupon payment dates.
         day_count_fractions : list of float
-            Day count fractions.
+            Day count fractions. Values may be non-uniform.
         strike_rate : float
             Fixed coupon rate K.
 
@@ -382,7 +383,8 @@ class SwaptionPricer:
         payment_dates : list of float
             Fixed leg payment dates [T_1, ..., T_n] in years.
         day_count_fractions : list of float
-            Day count fractions [delta_1, ..., delta_n].
+            Day count fractions [delta_1, ..., delta_n]. Values can be
+            non-uniform for bespoke schedules.
         strike_rate : float
             Fixed rate of the underlying swap K.
             Use par_swap_rate() to get the ATM strike.

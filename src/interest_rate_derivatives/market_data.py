@@ -5,6 +5,7 @@ from typing import ClassVar
 import pandas as pd
 from dotenv import load_dotenv
 
+from interest_rate_derivatives.dtcc_client import DTCCClient
 from interest_rate_derivatives.fred_client import FREDAPIClient
 
 # Load environment variables from .env file
@@ -117,6 +118,17 @@ class MarketDataClient:
             "No valid rates extracted from FRED data; falling back to placeholder curve"
         )
         return self._get_placeholder_curve()
+
+    def get_swaption_data(self, target_date: str | None = None) -> pd.DataFrame:
+        """
+        Convenience wrapper to fetch swaption pricing data from DTCC.
+
+        Returns a cleaned DataFrame produced by `DTCCClient.fetch_swaptions`.
+        This method is optional — users may instantiate `DTCCClient` directly.
+        """
+
+        client = DTCCClient()
+        return client.fetch_swaptions(target_date=target_date)
 
     @staticmethod
     def _get_placeholder_curve() -> pd.DataFrame:
