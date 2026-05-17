@@ -161,14 +161,17 @@ def _interval_to_standard_frequency(period_unit: str, multiplier: float) -> int 
     )
 
 
-def _extract_frequency(row: pd.Series, fallback: int = 2) -> int:
+def _extract_frequency(
+    period_unit: str | None,
+    multiplier: float | None,
+    fallback: int = 2,
+) -> int:
     """Extract a standard annual frequency when the interval is standard.
 
     For bespoke schedules (e.g. every 5 months), this returns the provided
     fallback and schedule generation should use explicit period+multiplier.
     """
 
-    period_unit, multiplier = _extract_payment_interval(row)
     if period_unit is not None and multiplier is not None:
         standard_frequency = _interval_to_standard_frequency(period_unit, multiplier)
         if standard_frequency is not None:
@@ -338,7 +341,11 @@ def dtcc_df_to_calibration_instruments(
 
             # Step 11: Create instrument
             period_unit, period_multiplier = _extract_payment_interval(row)
-            row_frequency = _extract_frequency(row, fallback=frequency or 2)
+            row_frequency = _extract_frequency(
+                period_unit,
+                period_multiplier,
+                fallback=frequency or 2,
+            )
             label = f"{option_expiry:.2f}Yx{swap_tenor:.2f}Y"
             instr = CalibrationInstrument(
                 option_expiry=float(option_expiry),
