@@ -324,7 +324,15 @@ def dtcc_df_to_calibration_instruments(
                 continue
 
             # Step 9: Normalize price to per-unit-notional
-            if price_format == "per_notional" or 0 < premium < 1:
+            if price_format == "per_notional":
+                price = float(premium)
+            elif 0 < premium < 1:
+                logger.warning(
+                    "Row %s: Auto-detected premium %.6f as per-notional; set "
+                    "price_format='per_notional' to make this explicit",
+                    idx,
+                    premium,
+                )
                 price = float(premium)
             else:
                 price = float(premium) / float(notional)
