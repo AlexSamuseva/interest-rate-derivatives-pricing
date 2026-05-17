@@ -13,14 +13,10 @@ import pandas as pd
 
 from interest_rate_derivatives.pricing.calibration import CalibrationInstrument
 from interest_rate_derivatives.utils.periods import (
-    PERIOD_UNIT_ALIASES,
     normalize_period_unit,
 )
 
 logger = logging.getLogger(__name__)
-
-
-_PERIOD_UNIT_ALIASES = PERIOD_UNIT_ALIASES
 
 
 _CODE_TO_INTERVAL = {
