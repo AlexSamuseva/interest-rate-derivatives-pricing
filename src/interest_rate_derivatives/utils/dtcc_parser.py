@@ -12,29 +12,15 @@ import logging
 import pandas as pd
 
 from interest_rate_derivatives.pricing.calibration import CalibrationInstrument
+from interest_rate_derivatives.utils.periods import (
+    PERIOD_UNIT_ALIASES,
+    normalize_period_unit,
+)
 
 logger = logging.getLogger(__name__)
 
 
-_PERIOD_UNIT_ALIASES = {
-    "YEAR": "YEAR",
-    "YEARS": "YEAR",
-    "YR": "YEAR",
-    "YRS": "YEAR",
-    "MNTH": "MNTH",
-    "MONTH": "MNTH",
-    "MONTHS": "MNTH",
-    "MTH": "MNTH",
-    "MTHS": "MNTH",
-    "WEEK": "WEEK",
-    "WEEKS": "WEEK",
-    "WK": "WEEK",
-    "WKS": "WEEK",
-    "DAIL": "DAIL",
-    "DAILY": "DAIL",
-    "DAY": "DAIL",
-    "DAYS": "DAIL",
-}
+_PERIOD_UNIT_ALIASES = PERIOD_UNIT_ALIASES
 
 
 _CODE_TO_INTERVAL = {
@@ -100,7 +86,7 @@ def _normalize_period_unit(raw: object) -> str | None:
     raw_text = str(raw).strip().upper()
     if raw_text in _CODE_TO_INTERVAL:
         return _CODE_TO_INTERVAL[raw_text][0]
-    return _PERIOD_UNIT_ALIASES.get(raw_text)
+    return normalize_period_unit(raw_text)
 
 
 def _extract_payment_interval(
@@ -327,7 +313,7 @@ def dtcc_df_to_calibration_instruments(
                     swap_tenor = 5.0
 
             # Step 8: Validate swap tenor is reasonable (0.01Y to 30Y)
-            if swap_tenor < 0.01 or swap_tenor > 30:
+            if not 0.01 <= swap_tenor <= 30:
                 skipped_count += 1
                 logger.debug(
                     "Row %s: Skipped - swap tenor out of range (%.3fY)", idx, swap_tenor
@@ -335,7 +321,7 @@ def dtcc_df_to_calibration_instruments(
                 continue
 
             # Step 9: Normalize price to per-unit-notional
-            if price_format == "per_notional" or (premium > 0 and premium < 1):
+            if price_format == "per_notional" or 0 < premium < 1:
                 price = float(premium)
             else:
                 price = float(premium) / float(notional)

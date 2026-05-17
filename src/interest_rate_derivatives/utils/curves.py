@@ -37,6 +37,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from scipy.interpolate import CubicSpline
 
+from interest_rate_derivatives.utils.periods import normalize_period_unit
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -451,26 +453,7 @@ def generate_payment_schedule(
             raise ValueError(msg)
 
         unit = period_unit.strip().upper()
-        unit_aliases = {
-            "YEAR": "YEAR",
-            "YEARS": "YEAR",
-            "YR": "YEAR",
-            "YRS": "YEAR",
-            "MNTH": "MNTH",
-            "MONTH": "MNTH",
-            "MONTHS": "MNTH",
-            "MTH": "MNTH",
-            "MTHS": "MNTH",
-            "WEEK": "WEEK",
-            "WEEKS": "WEEK",
-            "WK": "WEEK",
-            "WKS": "WEEK",
-            "DAIL": "DAIL",
-            "DAILY": "DAIL",
-            "DAY": "DAIL",
-            "DAYS": "DAIL",
-        }
-        normalized = unit_aliases.get(unit)
+        normalized = normalize_period_unit(unit)
         if normalized is None:
             msg = f"Unsupported period_unit '{period_unit}'."
             raise ValueError(msg)

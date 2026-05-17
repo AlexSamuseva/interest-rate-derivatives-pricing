@@ -19,10 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class DTCCClient:
-    BASE_URL = "https://pddata.dtcc.com/ppd/api/report/cumulative/cftc/"
+    """Download and clean DTCC cumulative rates reports."""
 
-    def __init__(self) -> None:
-        pass
+    BASE_URL = "https://pddata.dtcc.com/ppd/api/report/cumulative/cftc/"
 
     def fetch_swaptions(self, target_date: str | None = None) -> pd.DataFrame:
         """
@@ -86,8 +85,16 @@ class DTCCClient:
                         errors="coerce",
                     )
 
-        except Exception:  # pragma: no cover - network/IO
+        except (
+            requests.RequestException,
+            zipfile.BadZipFile,
+            UnicodeDecodeError,
+            OSError,
+            KeyError,
+            IndexError,
+            pd.errors.ParserError,
+        ):  # pragma: no cover - network/IO
             logger.exception("Failed to download or parse DTCC report: %s", url)
             return pd.DataFrame()
-        else:
-            return swaptions
+
+        return swaptions
